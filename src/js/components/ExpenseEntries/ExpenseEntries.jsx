@@ -1,11 +1,50 @@
+
 import React from 'react';
 
+// import all relevant action creators
+import {
+  updateExpenseDescription,
+  updateExpenseAmount,
+  addExpense
+} from './expenseActions';
+
+function formatCurrency(amount) {
+  const dollars = Math.floor(amount);
+  const cents = Math.floor((amount - dollars) * 100).toString().padEnd(2, '0');
+  return `$${dollars.toLocaleString()}.${cents}`;
+}
+
 export default class ExpenseEntries extends React.Component {
-  constructor(props) {
+  constructor(props){
     super(props);
+
+    this.handleDescriptionInput = this.handleDescriptionInput.bind(this);
+    this.handleAmountInput = this.handleAmountInput.bind(this);
+    this.handleAddExpense = this.handleAddExpense.bind(this);
+  };
+
+  handleDescriptionInput(event) {
+    // dispatch was provided by connect
+    const { dispatch } = this.props;
+    const { value } = event.target;
+    dispatch(updateExpenseDescription(value));
   }
 
-  render() {
+  handleAmountInput(event) {
+    const { dispatch } = this.props;
+    const { value } = event.target;
+    dispatch(updateExpenseAmount(value));
+  }
+
+  handleAddExpense() {
+    const { description, amount, dispatch } = this.props;
+    dispatch(addExpense(description, amount));
+  }
+
+  render(){
+    // these values were provided by connect
+    const { description, amount, lineItems } = this.props
+
     return (
       <div className='card border-danger mb-3'>
         <div className='card-header text-white bg-danger'>Expense Entries</div>
@@ -17,6 +56,8 @@ export default class ExpenseEntries extends React.Component {
                 type='text'
                 className='form-control'
                 id='expense-description'
+                value={ description }
+                onChange={ this.handleDescriptionInput }
               />
             </div>
             <div className='form-group'>
@@ -27,31 +68,36 @@ export default class ExpenseEntries extends React.Component {
                   type='text'
                   className='form-control'
                   id='expense-amount'
+                  value={ amount }
+                  onChange = { this.handleAmountInput }
                 />
               </div>
             </div>
             <button
               type='button'
               className='btn btn-danger col-12 mb-5'
+              onClick={ this.handleAddExpense }
             >+ Add Expense
             </button>
             <table className='table table-sm table-hover'>
               <thead>
                 <tr>
                   <th>Description</th>
-                  <th style={ { width: 120 } } >Amount</th>
+                  <th style={ { width: 120 } }>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Rent</td>
-                  <td>$1,500.00</td>
-                </tr>
+                { lineItems.map(lineItem => (
+                    <tr key={ lineItem.id }>
+                      <td>{ lineItem.description }</td>
+                      <td>{ formatCurrency(lineItem.amount) }</td>
+                    </tr>
+                  )) }
               </tbody>
             </table>
           </form>
         </div>
       </div>
     );
-  }
-}
+  };
+};
